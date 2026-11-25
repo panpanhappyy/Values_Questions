@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>群需求记录台</title>
+<style>
+  :root{
+    --bg:#fdf3f6; --card:#fffbfd; --ink:#3a2a30; --ink2:#8b6f7a; --line:#f1dae3;
+    --accent:#d9668f; --accent-soft:#fde8ef;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC",system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.5;}
+  .wrap{max-width:1520px;margin:0 auto;padding:22px 20px 60px;}
+  header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
+  h1{font-size:21px;margin:0;letter-spacing:.5px;}
+  .sub{color:var(--ink2);font-size:12.5px;margin-top:4px;}
+  .btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;
+    padding:8px 13px;font-size:13px;cursor:pointer;transition:.15s;font-family:inherit;}
+  .btn:hover{border-color:var(--accent);color:var(--accent);}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  .btn.primary:hover{filter:brightness(.95);color:#fff;}
+  .btn.sm{padding:4px 9px;font-size:12px;border-radius:7px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;}
+  .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px;}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 15px;}
+  .stat .k{font-size:12px;color:var(--ink2);}
+  .stat .v{font-size:21px;font-weight:700;margin-top:3px;letter-spacing:-.4px;}
+  .stat .f{font-size:11.5px;color:var(--ink2);margin-top:2px;}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
+  .toolbar input[type=text],.toolbar select,.toolbar input[type=date]{
+    border:1px solid var(--line);background:var(--card);border-radius:9px;padding:7px 10px;
+    font-size:13px;font-family:inherit;color:var(--ink);}
+  .toolbar input[type=text]{min-width:180px;}
+  .dateWrap{position:relative;display:inline-flex;align-items:center;}
+  .dateWrap input[type=date]{width:148px;padding-left:11px;}
+  .dateWrap input[type=date]:invalid::-webkit-datetime-edit{color:transparent;}
+  .dateWrap .ph{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;
+    color:#ad97a0;pointer-events:none;}
+  .dateWrap input[type=date]:valid + .ph{display:none;}
+  .toolbar input:focus,.toolbar select:focus{outline:none;border-color:var(--accent);}
+  .spacer{flex:1;}
+  .tableWrap{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:auto;max-height:62vh;}
+  table{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px;white-space:nowrap;}
+  thead th{position:sticky;top:0;z-index:2;background:#fbe6ee;color:#6b4a55;font-weight:600;
+    text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);}
+  tbody td{padding:8px 10px;border-bottom:1px solid #fae8ee;vertical-align:top;white-space:nowrap;}
+  tbody tr:hover td{background:#fff5f8;}
+  td.desc,td.note{white-space:normal;min-width:200px;max-width:300px;color:var(--ink2);}
+  .num{text-align:center;font-variant-numeric:tabular-nums;}
+  .tag{display:inline-block;padding:1px 8px;border-radius:20px;font-size:11.5px;border:1px solid;line-height:1.6;}
+  .pill-yes{background:#fdeef4;border-color:#f5cfe0;color:#b8446d;}
+  .pill-no{background:#f6eef2;border-color:#e8d8de;color:#8a7078;}
+  .pill-part{background:#fdf1e3;border-color:#efdcb6;color:#9a7420;}
+  .ops{display:flex;gap:2px;}
+  td.opsCell{position:sticky;right:0;background:var(--card);box-shadow:-6px 0 8px -6px rgba(150,80,105,.18);}
+  thead th.opsHead{position:sticky;right:0;z-index:3;background:#fbe6ee;box-shadow:-6px 0 8px -6px rgba(150,80,105,.18);}
+  tbody tr:hover td.opsCell{background:#fff5f8;}
+  .lnk{color:var(--accent);cursor:pointer;font-size:12px;background:none;border:none;padding:2px 5px;font-family:inherit;}
+  .lnk.del{color:#a08b7e;}
+  .lnk:hover{text-decoration:underline;}
+  .empty{padding:46px 20px;text-align:center;color:var(--ink2);}
+  .empty .btn{margin-top:12px;}
+  .charts{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px;}
+  .chartrow{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:12.5px;}
+  .chartrow .lab{width:112px;color:var(--ink2);text-align:right;flex:none;font-size:11.5px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .chartrow .bar{height:15px;border-radius:5px;background:var(--accent);opacity:.85;min-width:2px;transition:.3s;}
+  .chartrow .cnt{color:var(--ink2);font-size:11.5px;}
+  h3{font-size:14px;margin:0 0 6px;font-weight:700;}
+  .sum{display:grid;gap:16px;margin-top:16px;}
+  .sumcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;}
+  .sumhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;}
+  .sumhead .tip{font-size:12px;color:var(--ink2);margin-top:2px;}
+  .miniWrap{overflow:auto;border:1px solid var(--line);border-radius:10px;max-height:52vh;}
+  table.mini{border-collapse:separate;border-spacing:0;width:100%;font-size:12px;white-space:nowrap;}
+  table.mini th{position:sticky;top:0;z-index:1;background:#fbe6ee;color:#6b4a55;font-weight:600;
+    text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);}
+  table.mini th.num2{text-align:center;}
+  table.mini td{padding:6px 9px;border-bottom:1px solid #fae8ee;}
+  table.mini tr.total td{font-weight:700;background:#fdf1f5;}
+  table.mini .num2{text-align:center;font-variant-numeric:tabular-nums;width:112px;}
+  table.mini td:first-child,table.mini th:first-child{min-width:168px;}
+  table.mini.fixed{table-layout:fixed;width:100%;}
+  table.mini.fixed td:first-child,table.mini.fixed th:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  .sumInputs{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);}
+  .sumInputs input[type=date]{border:1px solid var(--line);background:#fff;border-radius:9px;
+    padding:6px 9px;font-size:12.5px;font-family:inherit;color:var(--ink);}
+  .sumInputs input[type=date]:focus{outline:none;border-color:var(--accent);}
+  .mask{position:fixed;inset:0;background:rgba(40,32,26,.42);display:none;align-items:flex-start;
+    justify-content:center;z-index:50;overflow:auto;padding:34px 16px;}
+  .mask.on{display:flex;}
+  .modal{background:var(--card);border-radius:16px;width:min(940px,100%);padding:22px 24px;
+    box-shadow:0 20px 50px rgba(0,0,0,.18);}
+  .modal h2{font-size:17px;margin:0 0 4px;}
+  .modal .hint{font-size:12px;color:var(--ink2);margin-bottom:4px;}
+  .sect{font-size:12px;color:var(--accent);font-weight:700;letter-spacing:1px;margin:16px 0 8px;}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field.wide{grid-column:span 2;}
+  .field.full{grid-column:1/-1;}
+  .field label{font-size:12px;color:var(--ink2);}
+  .field input,.field select,.field textarea{
+    border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px;
+    font-family:inherit;background:#fff;color:var(--ink);width:100%;}
+  .field textarea{min-height:58px;resize:vertical;}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent);}
+  .field .ro{background:#f5f1eb;color:#8a8078;}
+  .modalFoot{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+  .notes{font-size:12.5px;color:var(--ink2);margin-top:16px;line-height:1.9;}
+  .notes b{color:var(--ink);}
+  @media(max-width:1200px){.stats{grid-template-columns:repeat(3,1fr);}.grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:760px){.charts{grid-template-columns:1fr;}.stats{grid-template-columns:repeat(2,1fr);}}
+  @media(min-width:761px) and (max-width:1080px){.charts{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>群需求记录台</h1>
+      <div class="sub">记录群里每一条需求的发起、互动与后续消费 · 周统计和时段统计自动生成</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="exportCSV()">导出明细</button>
+      <button class="btn" onclick="document.getElementById('imp').click()">导入备份</button>
+      <input type="file" id="imp" accept=".json" style="display:none" onchange="importJSON(event)">
+      <button class="btn" onclick="exportJSON()">导出备份</button>
+      <button class="btn primary" onclick="openForm()">＋ 新增记录</button>
+    </div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="toolbar">
+    <input type="text" id="q" placeholder="搜索：群 / 昵称 / 需求 / 活动 / 备注" oninput="render()">
+    <select id="fGroup" onchange="render()"><option value="">全部群聊</option></select>
+    <select id="fType" onchange="render()"><option value="">全部需求类型</option></select>
+    <select id="fInter" onchange="render()"><option value="">全部互动分类</option></select>
+    <select id="fTpl" onchange="render()"><option value="">是否按模板</option><option>是</option><option>部分</option><option>否</option></select>
+    <select id="fAgain" onchange="render()"><option value="">是否再次发起</option><option>是</option><option>否</option></select>
+    <span class="dateWrap"><input type="date" id="dFrom" required onchange="render()"><span class="ph">开始时间</span></span>
+    <span style="color:var(--ink2);font-size:12px">至</span>
+    <span class="dateWrap"><input type="date" id="dTo" required onchange="render()"><span class="ph">结束时间</span></span>
+    <button class="btn sm" onclick="clearFilter()">重置</button>
+    <div class="spacer"></div>
+    <span id="countHint" style="color:var(--ink2);font-size:12px"></span>
+  </div>
+
+  <div class="tableWrap">
+    <table id="tbl">
+      <thead><tr id="thead"></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="empty" style="display:none">
+      还没有记录<br>
+      <button class="btn" onclick="loadSample()">载入 2 条示例看看效果</button>
+      <button class="btn primary" onclick="openForm()">＋ 新增第一条</button>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="card"><h3>需求类型分布</h3><div id="chartType"></div></div>
+    <div class="card"><h3>互动情况分布</h3><div id="chartInter"></div></div>
+    <div class="card"><h3>各群记录数</h3><div id="chartGroup"></div></div>
+  </div>
+
+  <div class="sum">
+    <div class="sumcard">
+      <div class="sumhead">
+        <div>
+          <h3>按周统计（自动生成）</h3>
+          <div class="tip">周一 → 周日为一周；重复消费情况 = 这周消费的人里新客 / 老客各几个，每周消费次数 = 人次 ÷ 人数</div>
+        </div>
+        <button class="btn sm" onclick="exportWeekCSV()">导出周汇总</button>
+      </div>
+      <div class="miniWrap"><table class="mini fixed" id="weekTbl"></table></div>
+    </div>
+
+    <div class="sumcard">
+      <div class="sumhead">
+        <div>
+          <h3>按时段统计（自动生成）</h3>
+          <div class="tip">按发起时间落进四个时段：上午 6:00–14:00 · 下午 14:00–18:00 · 晚间 18:00–23:00 · 深夜 23:00–6:00</div>
+        </div>
+        <button class="btn sm" onclick="exportSlotCSV()">导出时段汇总</button>
+      </div>
+      <div class="miniWrap"><table class="mini fixed" id="slotTbl"></table></div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <b>需求类型说明</b><br>
+    🌈 夸夸我 = 求夸、求认可，想要好话 · 💗 哄哄我 = 情绪低落要被安抚 · 🔥 鼓励我 = 需要打气、推一推动力 · ⚡ 骂醒我 = 想被点醒、别惯着 · 💡 帮想想 = 出主意、给方案、帮拿主意。<br>
+    <b>字段说明</b><br>
+    · 群聊名称留空也不会出错，但填上之后可以按群筛选、看各群记录量，多个群一起运营时建议每条都填。<br>
+    · 未领取人数 = 红包份数 − 实际领取人数，自动计算，不用手填。<br>
+    · 响应人数是「多少人出声」，文字响应数 / 语音响应数记录的是「多少条」，两者不必相等。<br>
+    · 互动情况分类：无人响应(0人) · 零星响应(1–2人) · 多人响应(3–5人) · 热烈讨论(6人及以上) · 延伸新需求（从这条需求里长出了别的话题/活动）。填了响应人数会自动给出建议，也可以自己改。<br>
+    · 消费判定：只要这条需求发了红包（红包金额大于 0）就算产生消费，不用单独勾。消费人数按发起人昵称去重，人次 = 发过红包的条数，每周消费次数 = 人次 ÷ 人数。<br>· 时段统计的口径：按「发起时间」落进上午 6:00–14:00、下午 14:00–18:00、晚间 18:00–23:00、深夜 23:00–6:00，只看消费人数和人次。<br>· 周统计的口径：重复消费情况 = 这周消费的人里新客 / 复购（在别的周也消费过）各几个，每周消费次数 = 该周人次 ÷ 该周人数。<br>
+    · 红包金额填 0 或留空，这条就不计入消费统计。<br>
+    · 消费是按发起人昵称去重的，同一个人的昵称请保持写法一致（填写时可以直接从候选里选），否则会被算成两个人。
+  </div>
+</div>
+
+<div class="mask" id="mask">
+  <div class="modal">
+    <h2 id="mTitle">新增记录</h2>
+    <div class="hint">带 * 的建议至少填上，其余可以留空，事后点「编辑」再补。</div>
+    <div id="formBody"></div>
+    <div class="modalFoot">
+      <button class="btn" onclick="closeForm()">取消</button>
+      <button class="btn primary" onclick="saveRecord()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const FIELDS = [
+  {k:'group',  l:'群聊名称',      t:'text',     w:110, ph:'如：研究生能量夸夸群'},
+  {k:'date',   l:'日期 *',        t:'date',     w:112, sect:'发起信息'},
+  {k:'time',   l:'发起时间',      t:'time',     w:92},
+  {k:'nick',   l:'发起人昵称 *',  t:'text',     w:104},
+  {k:'type',   l:'需求类型 *',    t:'select',   w:116,
+    opts:['🌈夸夸我','💗哄哄我','🔥鼓励我','⚡骂醒我','💡帮想想']},
+  {k:'templated', l:'是否按模板', t:'select',   w:88, opts:['是','部分','否']},
+  {k:'desc',   l:'事件 / 需求简述 *', t:'textarea', w:208, wide:true},
+  {k:'sect2', l:'', t:'br', sect:'红包与互动'},
+  {k:'amount', l:'红包金额（元）', t:'number',  w:104, step:'0.01'},
+  {k:'parts',  l:'红包份数',      t:'number',  w:82},
+  {k:'claimed',l:'实际领取人数',  t:'number',   w:104},
+  {k:'unclaimed', l:'未领取人数', t:'computed', w:96},
+  {k:'responders', l:'响应人数',  t:'number',   w:82},
+  {k:'textResp',   l:'文字响应数', t:'number',  w:96},
+  {k:'voiceResp',  l:'语音响应数', t:'number',  w:96},
+  {k:'interact', l:'互动情况分类', t:'select',  w:112,
+    opts:['无人响应','零星响应','多人响应','热烈讨论','延伸新需求']},
+  {k:'again',  l:'是否再次发起',  t:'select',   w:100, opts:['是','否']},
+  {k:'note',   l:'备注',          t:'textarea', w:150, wide:true}
+];
+/* 表格显示顺序；消费类指标全部自动判定，不占用填写字段 */
+const COLKEYS = ['group','date','time','nick','type','interact','templated','desc','amount','parts',
+  'claimed','unclaimed','responders','textResp','voiceResp','again','note'];
+const COLS = COLKEYS.map(k=>FIELDS.find(f=>f.k===k));
+const TYPES = FIELDS.find(f=>f.k==='type').opts;
+const SLOTS = ['上午','下午','晚间','深夜','未填时间'];
+/* 旧的泛分类自动折算成新的五类，老记录不用手工重录 */
+const OLD_TYPE_MAP = {
+  '提问求助':'💡帮想想','话题讨论':'🌈夸夸我','活动发起':'🔥鼓励我',
+  '资源分享':'💡帮想想','招募组队':'🔥鼓励我','反馈建议':'💡帮想想',
+  '打卡互动':'🔥鼓励我','其他':'💡帮想想','帮想想':'💡帮想想',
+  '夸夸我':'🌈夸夸我','哄哄我':'💗哄哄我','鼓励我':'🔥鼓励我','骂醒我':'⚡骂醒我'
+};
+const KEY = 'qun_req_records_v2';
+let records = [];
+let editingId = null;
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function load(){
+  try{ records = JSON.parse(localStorage.getItem(KEY)) || []; }catch(e){ records = []; }
+  let changed = false;
+  records.forEach(r=>{
+    if(r.type && OLD_TYPE_MAP[r.type] && OLD_TYPE_MAP[r.type] !== r.type){ r.type = OLD_TYPE_MAP[r.type]; changed = true; }
+  });
+  if(changed) persist();
+}
+function persist(){
+  try{ localStorage.setItem(KEY, JSON.stringify(records)); }
+  catch(e){ console.warn('本地存储不可用，建议用「导出备份」保存数据'); }
+}
+
+load();
+initSelects();
+initForm();
+render();
+
+function initSelects(){
+  const ft = FIELDS.find(f=>f.k==='type');
+  ft.opts.forEach(o=>{
+    const el = document.createElement('option'); el.textContent=o; el.value=o;
+    document.getElementById('fType').appendChild(el);
+  });
+  const fi = FIELDS.find(f=>f.k==='interact');
+  fi.opts.forEach(o=>{
+    const el = document.createElement('option'); el.textContent=o; el.value=o;
+    document.getElementById('fInter').appendChild(el);
+  });
+  refreshGroups();
+}
+
+/* 群聊名称：筛选下拉 + 填写时的候选，都从已有记录里取，避免同一个群写出不同写法 */
+function groupNames(){
+  const set = new Set();
+  records.forEach(r=>{ if(r.group && r.group.trim()) set.add(r.group.trim()); });
+  return Array.from(set).sort((a,b)=>a.localeCompare(b,'zh'));
+}
+function refreshGroups(){
+  const sel = document.getElementById('fGroup');
+  const cur = sel.value;
+  const names = groupNames();
+  sel.innerHTML = '<option value="">全部群聊</option>' +
+    names.map(n=>'<option>'+n.replace(/</g,'&lt;')+'</option>').join('');
+  sel.value = names.includes(cur) ? cur : '';
+  const dl = document.getElementById('groupList');
+  if(dl) dl.innerHTML = names.map(n=>'<option value="'+n.replace(/"/g,'&quot;')+'">').join('');
+}
+/* 发起人昵称同样给候选，避免同一个人换写法被算成两个消费人数 */
+function nickNames(){
+  const set = new Set();
+  records.forEach(r=>{ if(r.nick && r.nick.trim()) set.add(r.nick.trim()); });
+  return Array.from(set).sort((a,b)=>a.localeCompare(b,'zh'));
+}
+function refreshNicks(){
+  const dl = document.getElementById('nickList');
+  if(!dl) return;
+  dl.innerHTML = nickNames().map(n=>'<option value="'+n.replace(/"/g,'&quot;')+'">').join('');
+}
+
+/* ---------- table head ---------- */
+(function(){
+  const tr = document.getElementById('thead');
+  COLS.forEach(c=>{
+    const th = document.createElement('th');
+    th.textContent = c.l.replace(' *','');
+    th.style.minWidth = c.w + 'px';
+    if(c.t==='number' || c.t==='computed') th.style.textAlign = 'center';
+    tr.appendChild(th);
+  });
+  const th = document.createElement('th'); th.textContent='操作'; th.style.width='96px'; th.className='opsHead';
+  tr.appendChild(th);
+})();
+
+/* ---------- form ---------- */
+function initForm(){
+  const body = document.getElementById('formBody');
+  let html = '<div class="sect">发起信息</div><div class="grid">';
+  FIELDS.forEach(f=>{
+    if(f.t==='br'){
+      html += '</div><div class="sect">'+ (f.sect||'') +'</div><div class="grid">';
+      return;
+    }
+    const cls = f.full ? 'field full' : (f.wide ? 'field wide' : 'field');
+    let input = '';
+    if(f.t==='select'){
+      input = '<select data-k="'+f.k+'"><option value="">—</option>' +
+        f.opts.map(o=>'<option value="'+o+'">'+o+'</option>').join('') + '</select>';
+    }else if(f.t==='textarea'){
+      input = '<textarea data-k="'+f.k+'" rows="2"></textarea>';
+    }else if(f.t==='computed'){
+      input = '<input data-k="'+f.k+'" class="ro" readonly placeholder="自动计算">';
+    }else{
+      input = '<input data-k="'+f.k+'" type="'+f.t+'"' +
+        (f.step?' step="'+f.step+'"':'') +
+        (f.t==='number'?' min="0"':'') +
+        (f.ph?' placeholder="'+f.ph+'"':'') +
+        (f.k==='group'?' list="groupList" autocomplete="off"':'') +
+        (f.k==='nick'?' list="nickList" autocomplete="off"':'') + '>';
+    }
+    html += '<div class="'+cls+'"><label>'+f.l+'</label>'+input+'</div>';
+  });
+  html += '</div><datalist id="groupList"></datalist><datalist id="nickList"></datalist>';
+  body.innerHTML = html;
+
+  body.querySelectorAll('[data-k]').forEach(el=>{
+    el.addEventListener('input', ()=>{
+      if(el.dataset.k==='parts' || el.dataset.k==='claimed') calcUnclaimed();
+      if(el.dataset.k==='responders') suggestInteract();
+    });
+  });
+}
+
+function calcUnclaimed(){
+  const parts = Number(getVal('parts'));
+  const claimed = Number(getVal('claimed'));
+  const box = document.querySelector('[data-k="unclaimed"]');
+  if(!box) return;
+  if(getVal('parts')!=='' && getVal('claimed')!==''){
+    box.value = Math.max(0, parts - claimed);
+  }else{ box.value = ''; }
+}
+function suggestInteract(){
+  const n = Number(getVal('responders'));
+  const sel = document.querySelector('[data-k="interact"]');
+  if(!sel || getVal('responders')==='' || sel.value) return;
+  if(n<=0) sel.value='无人响应';
+  else if(n<=2) sel.value='零星响应';
+  else if(n<=5) sel.value='多人响应';
+  else sel.value='热烈讨论';
+}
+function getVal(k){
+  const el = document.querySelector('[data-k="'+k+'"]');
+  return el ? el.value.trim() : '';
+}
+function setVal(k,v){
+  const el = document.querySelector('[data-k="'+k+'"]');
+  if(el) el.value = (v===undefined||v===null) ? '' : v;
+}
+
+function openForm(rec){
+  editingId = rec ? rec.id : null;
+  document.getElementById('mTitle').textContent = rec ? '编辑记录' : '新增记录';
+  FIELDS.forEach(f=>{ if(f.t!=='br') setVal(f.k, rec ? (rec[f.k]||'') : ''); });
+  if(!rec) setVal('date', todayStr());
+  calcUnclaimed();
+  document.getElementById('mask').classList.add('on');
+  const first = document.querySelector('[data-k="nick"]'); if(first) first.focus();
+}
+function closeForm(){
+  document.getElementById('mask').classList.remove('on');
+  editingId = null;
+}
+document.getElementById('mask').addEventListener('click', e=>{
+  if(e.target.id==='mask') closeForm();
+});
+
+function saveRecord(){
+  const rec = { id: editingId || uid(), createdAt: Date.now() };
+  COLS.forEach(c=>{ rec[c.k] = getVal(c.k); });
+  if(!rec.date || !rec.desc || !rec.nick){
+    alert('「日期」「发起人昵称」「事件/需求简述」先填一下，不然之后分不清是哪一条。');
+    return;
+  }
+  rec.unclaimed = (rec.parts!=='' && rec.claimed!=='') ? Math.max(0, Number(rec.parts)-Number(rec.claimed)) : '';
+  if(editingId){
+    const i = records.findIndex(r=>r.id===editingId);
+    if(i>-1){ rec.createdAt = records[i].createdAt || rec.createdAt; records[i]=rec; }
+  }else{
+    records.push(rec);
+  }
+  persist(); closeForm(); render();
+}
+
+function delRecord(id){
+  if(!confirm('删除这一条记录？删了就找不回来了。')) return;
+  records = records.filter(r=>r.id!==id);
+  persist(); render();
+}
+
+/* ---------- render ---------- */
+function filtered(){
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const fT = document.getElementById('fType').value;
+  const fI = document.getElementById('fInter').value;
+  const fP = document.getElementById('fTpl').value;
+  const fA = document.getElementById('fAgain').value;
+  const fG = document.getElementById('fGroup').value;
+  const from = document.getElementById('dFrom').value;
+  const to = document.getElementById('dTo').value;
+  return records.filter(r=>{
+    if(q){
+      const hay = ((r.group||'')+' '+(r.nick||'')+' '+(r.desc||'')+' '+(r.type||'')+' '+(r.note||'')).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    if(fG && (r.group||'').trim()!==fG) return false;
+    if(fT && r.type!==fT) return false;
+    if(fI && r.interact!==fI) return false;
+    if(fP && r.templated!==fP) return false;
+    if(fA && r.again!==fA) return false;
+    if(from && (r.date||'') < from) return false;
+    if(to && (r.date||'') > to) return false;
+    return true;
+  }).sort((a,b)=>{
+    const ka = (a.date||'')+' '+(a.time||'');
+    const kb = (b.date||'')+' '+(b.time||'');
+    return kb.localeCompare(ka);
+  });
+}
+
+function pill(val){
+  if(val==='是') return '<span class="tag pill-yes">是</span>';
+  if(val==='部分') return '<span class="tag pill-part">部分</span>';
+  if(val==='否') return '<span class="tag pill-no">否</span>';
+  return val ? val : '';
+}
+
+function render(){
+  refreshGroups();
+  refreshNicks();
+  const rows = filtered();
+  const tb = document.getElementById('tbody');
+  tb.innerHTML = '';
+  document.getElementById('empty').style.display = rows.length ? 'none' : 'block';
+  if(!rows.length) document.getElementById('empty').style.display='block';
+
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    COLS.forEach(c=>{
+      const td = document.createElement('td');
+      td.style.minWidth = c.w + 'px';
+      if(c.k==='desc' || c.k==='note') td.className = c.k;
+      if(c.t==='number' || c.t==='computed') td.className='num';
+      const v = r[c.k] ?? '';
+      if(c.k==='templated' || c.k==='again'){
+        td.innerHTML = pill(v);
+      }else if(c.k==='amount' && v!==''){ td.textContent = Number(v).toFixed(2); }
+      else{ td.textContent = v; }
+      tr.appendChild(td);
+    });
+    const ops = document.createElement('td');
+    ops.className='ops opsCell';
+    const e = document.createElement('button'); e.className='lnk'; e.textContent='编辑';
+    e.onclick = ()=>openForm(r);
+    const d = document.createElement('button'); d.className='lnk del'; d.textContent='删除';
+    d.onclick = ()=>delRecord(r.id);
+    ops.appendChild(e); ops.appendChild(d);
+    tr.appendChild(ops);
+    tb.appendChild(tr);
+  });
+
+  document.getElementById('countHint').textContent = '共 ' + rows.length + ' 条' + (rows.length!==records.length ? '（筛选自 '+records.length+' 条）' : '');
+  renderStats();
+  renderCharts();
+  renderWeek();
+  renderSlot();
+}
+
+function sumOf(list, k){ return list.reduce((s,r)=>s + (Number(r[k])||0), 0); }
+
+function renderStats(){
+  const all = records;
+  const total = all.length;
+  const tplYes = all.filter(r=>r.templated==='是').length;
+  const parts = sumOf(all,'parts');
+  const claimed = sumOf(all,'claimed');
+  const amount = sumOf(all,'amount');
+  const respAvg = total ? (sumOf(all,'responders')/total) : 0;
+  const converted = all.filter(r=>hasConsume(r)).length;
+  const buyers = (function(){
+    const s = new Set(); all.forEach(r=>{ if(hasConsume(r) && r.nick) s.add(r.nick.trim()); }); return s.size;
+  })();
+  const repeaters = (function(){
+    const nw = nickWeeks();
+    return Object.keys(nw).filter(n=>nw[n].size>1).length;
+  })();
+  const againYes = all.filter(r=>r.again==='是').length;
+
+  const items = [
+    ['需求总数', total, '条记录 · '+groupNames().length+' 个群'],
+    ['红包总额', amount.toFixed(2), '元'],
+    ['红包领取率', (parts? (claimed/parts*100).toFixed(1):'0.0') + '%', claimed+' / '+parts+' 份'],
+    ['平均响应人数', respAvg.toFixed(1), '人 / 条'],
+    ['按模板率', (total? (tplYes/total*100).toFixed(0):'0') + '%', tplYes+' 条按模板'],
+    ['消费人数', buyers, converted+' 条有消费 · 重复 '+repeaters+' 人'],
+  ];
+  document.getElementById('stats').innerHTML = items.map(it=>
+    '<div class="stat"><div class="k">'+it[0]+'</div><div class="v">'+it[1]+'</div><div class="f">'+it[2]+'</div></div>'
+  ).join('');
+  window.__againYes = againYes;
+}
+
+function bars(elId, counts, order){
+  const el = document.getElementById(elId);
+  const keys = order || Object.keys(counts);
+  const max = Math.max(1, ...keys.map(k=>counts[k]||0));
+  el.innerHTML = keys.map(k=>{
+    const n = counts[k] || 0;
+    const w = Math.round(n/max*100);
+    return '<div class="chartrow"><span class="lab" title="'+k+'">'+k+'</span>'+
+      '<span class="bar" style="width:'+ (w? w : 0) +'%"></span>'+
+      '<span class="cnt">'+n+'</span></div>';
+  }).join('');
+}
+
+function renderCharts(){
+  const typeCounts = {}, interCounts = {}, groupCounts = {};
+  records.forEach(r=>{
+    if(r.type) typeCounts[r.type] = (typeCounts[r.type]||0)+1;
+    if(r.interact) interCounts[r.interact] = (interCounts[r.interact]||0)+1;
+    const g = (r.group||'').trim() || '（未填群名）';
+    groupCounts[g] = (groupCounts[g]||0)+1;
+  });
+  const typeOrder = FIELDS.find(f=>f.k==='type').opts.filter(o=>typeCounts[o]);
+  const interOrder = FIELDS.find(f=>f.k==='interact').opts.filter(o=>interCounts[o]);
+  const groupOrder = Object.keys(groupCounts).sort((a,b)=>groupCounts[b]-groupCounts[a]);
+  if(!typeOrder.length) document.getElementById('chartType').innerHTML = '<div style="color:var(--ink2);font-size:12.5px;padding:8px 0">还没有数据</div>';
+  else bars('chartType', typeCounts, typeOrder);
+  if(!interOrder.length) document.getElementById('chartInter').innerHTML = '<div style="color:var(--ink2);font-size:12.5px;padding:8px 0">还没有数据</div>';
+  else bars('chartInter', interCounts, interOrder);
+  if(!groupOrder.length) document.getElementById('chartGroup').innerHTML = '<div style="color:var(--ink2);font-size:12.5px;padding:8px 0">还没有数据</div>';
+  else bars('chartGroup', groupCounts, groupOrder);
+}
+
+/* ---------- 自动汇总：按周 / 按时间段 ---------- */
+function pct(a,b){ return b ? (a/b*100).toFixed(1)+'%' : '—'; }
+function parseD(s){ const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
+function isoD(d){ const p = n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+function weekStartOf(s){
+  const d = parseD(s); const w = (d.getDay()+6)%7; d.setDate(d.getDate()-w); return isoD(d);
+}
+function weekLabel(start){
+  const s = parseD(start), e = new Date(s); e.setDate(s.getDate()+6);
+  const f = x => (x.getMonth()+1)+'.'+String(x.getDate()).padStart(2,'0');
+  return s.getFullYear()+'.'+f(s)+' – '+f(e);
+}
+/* 消费判定：发了红包就算这笔需求产生了消费，不用手填 */
+function hasConsume(r){ return Number(r.amount) > 0; }
+/* 谁在哪几周产生过消费 —— 用来判断重复消费 */
+function nickWeeks(){
+  const map = {};
+  records.forEach(r=>{
+    if(hasConsume(r) && r.date && r.nick){
+      const w = weekStartOf(r.date);
+      (map[r.nick.trim()] = map[r.nick.trim()] || new Set()).add(w);
+    }
+  });
+  return map;
+}
+function metricsOf(list){
+  const m = {total:list.length, byType:{}, amount:0, parts:0, claimed:0, resp:0,
+             consumers:0, consumeCount:0, repeat:0, perPerson:'—'};
+  TYPES.forEach(t=>m.byType[t]=0);
+  list.forEach(r=>{
+    if(m.byType[r.type]!==undefined) m.byType[r.type]++;
+    m.amount += Number(r.amount)||0;
+    m.parts += Number(r.parts)||0;
+    m.claimed += Number(r.claimed)||0;
+    m.resp += Number(r.responders)||0;
+  });
+  const nw = nickWeeks();
+  const keys = new Set();
+  list.forEach(r=>{
+    if(hasConsume(r)){
+      m.consumeCount++;
+      if(r.nick) keys.add(r.nick.trim());
+    }
+  });
+  m.consumers = keys.size;
+  m.repeat = Array.from(keys).filter(n=>nw[n] && nw[n].size > 1).length;
+  m.perPerson = keys.size ? (m.consumeCount/keys.size).toFixed(1) : '—';
+  return m;
+}
+function dated(){ return records.filter(r=>r.date); }
+
+/* 发起时间落进四个时段：上午 6–14 · 下午 14–18 · 晚间 18–23 · 深夜 23–6 */
+function timeSlotOf(time){
+  if(!time) return '未填时间';
+  const h = Number(String(time).split(':')[0]);
+  if(isNaN(h)) return '未填时间';
+  if(h >= 6 && h < 14) return '上午';
+  if(h >= 14 && h < 18) return '下午';
+  if(h >= 18 && h < 23) return '晚间';
+  return '深夜';
+}
+
+function weekTable(){
+  const head = ['周（周一–周日）','记录条数','消费人数','人次','重复消费情况','每周消费次数'];
+  const groups = {};
+  dated().forEach(r=>{ const w = weekStartOf(r.date); (groups[w] = groups[w] || []).push(r); });
+  const keys = Object.keys(groups).sort((a,b)=>b.localeCompare(a));
+  const nw = nickWeeks();
+  const rowOf = (label, list, wsKey, isTotal) => {
+    const m = metricsOf(list);
+    const names = new Set();
+    list.forEach(r=>{ if(hasConsume(r) && r.nick) names.add(r.nick.trim()); });
+    /* 单周：复购 = 这周消费过、且更早的周也消费过；合计：复购 = 跨周消费过的人 */
+    const repeat = Array.from(names).filter(n=>{
+      const ws = nw[n] || [];
+      return isTotal ? ws.size > 1 : Array.from(ws).some(w=>w < wsKey);
+    }).length;
+    const fresh = names.size - repeat;
+    return [label, m.total, m.consumers, m.consumeCount,
+      '新 '+fresh+' 人 · 复购 '+repeat+' 人',
+      m.perPerson];
+  };
+  const rows = keys.map(k=>rowOf(weekLabel(k), groups[k], k, false));
+  if(rows.length) rows.push(rowOf('合计', dated(), '', true));
+  return {head, rows};
+}
+
+function slotTable(){
+  const head = ['时段','消费人数','人次','人次占比'];
+  const list = dated();
+  const m = metricsOf(list);
+  const rows = SLOTS.map(s=>{
+    const sub = list.filter(r=>timeSlotOf(r.time) === s);
+    const mm = metricsOf(sub);
+    return [s === '未填时间' ? s : s + '（' + {上午:'6:00–14:00',下午:'14:00–18:00',晚间:'18:00–23:00',深夜:'23:00–6:00'}[s] + '）',
+      mm.consumers, mm.consumeCount, pct(mm.consumeCount, m.consumeCount)];
+  });
+  rows.push(['合计', m.consumers, m.consumeCount, '100%']);
+  return {head, rows};
+}
+
+function renderWeek(){
+  const el = document.getElementById('weekTbl');
+  const {head, rows} = weekTable();
+  if(!rows.length){ el.innerHTML = '<tbody><tr><td style="padding:16px;color:var(--ink2)">还没有带日期的记录，填一条就能自动出周统计</td></tr></tbody>'; return; }
+  el.innerHTML = '<colgroup><col style="width:26%"><col style="width:9%"><col style="width:10%"><col style="width:9%"><col style="width:28%"><col style="width:18%"></colgroup>' +
+    '<thead><tr>' + head.map((h,j)=>'<th'+(j>0?' class="num2"':'')+'>'+h+'</th>').join('') + '</tr></thead><tbody>' +
+    rows.map((r,i)=>'<tr'+(i===rows.length-1?' class="total"':'')+'>' +
+      r.map((v,j)=>'<td'+(j>0?' class="num2"':'')+'>'+v+'</td>').join('') + '</tr>').join('') + '</tbody>';
+}
+
+function renderSlot(){
+  const el = document.getElementById('slotTbl');
+  const {head, rows} = slotTable();
+  el.innerHTML = '<colgroup><col style="width:34%"><col style="width:22%"><col style="width:22%"><col style="width:22%"></colgroup>' +
+    '<thead><tr>' + head.map((h,j)=>'<th'+(j>0?' class="num2"':'')+'>'+h+'</th>').join('') + '</tr></thead><tbody>' +
+    rows.map((r,i)=>'<tr'+(i===rows.length-1?' class="total"':'')+'>' +
+      r.map((v,j)=>'<td'+(j>0?' class="num2"':'')+'>'+v+'</td>').join('') + '</tr>').join('') + '</tbody>';
+}
+
+function exportWeekCSV(){
+  const {head, rows} = weekTable();
+  if(!rows.length){ alert('还没有带日期的记录。'); return; }
+  download('\ufeff'+[head].concat(rows).map(r=>r.map(csvCell).join(',')).join('\r\n'),
+    '群需求周汇总_'+todayStr()+'.csv', 'text/csv');
+}
+function exportSlotCSV(){
+  const {head, rows} = slotTable();
+  if(!records.length){ alert('还没有记录。'); return; }
+  download('\ufeff'+[head].concat(rows).map(r=>r.map(csvCell).join(',')).join('\r\n'),
+    '群需求时段汇总_'+todayStr()+'.csv', 'text/csv');
+}
+
+/* ---------- utils ---------- */
+function todayStr(){
+  const d = new Date();
+  const p = n => String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+function clearFilter(){
+  ['q','fGroup','fType','fInter','fTpl','fAgain','dFrom','dTo'].forEach(id=>document.getElementById(id).value='');
+  render();
+}
+
+function exportCSV(){
+  const rows = filtered();
+  if(!rows.length){ alert('当前没有可导出的记录。'); return; }
+  const head = COLS.map(c=>c.l.replace(' *',''));
+  const lines = [head.map(csvCell).join(',')];
+  rows.forEach(r=>{
+    lines.push(COLS.map(c=>{
+      let v = r[c.k];
+      if(c.k==='amount' && v!=='' && v!==undefined) v = Number(v).toFixed(2);
+      return csvCell(v===undefined||v===null?'':v);
+    }).join(','));
+  });
+  download('\ufeff'+lines.join('\r\n'), '群需求记录_'+todayStr()+'.csv', 'text/csv');
+}
+function csvCell(s){
+  s = String(s).replace(/"/g,'""');
+  return /[",\r\n]/.test(s) ? '"'+s+'"' : s;
+}
+function exportJSON(){
+  download(JSON.stringify(records, null, 2), '群需求记录备份_'+todayStr()+'.json', 'application/json');
+}
+function download(content, name, mime){
+  const blob = new Blob([content], {type:mime+';charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+function importJSON(ev){
+  const f = ev.target.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = e=>{
+    try{
+      const arr = JSON.parse(e.target.result);
+      if(!Array.isArray(arr)) throw 0;
+      const map = new Map(records.map(r=>[r.id,r]));
+      arr.forEach(r=>{ if(r && r.id) map.set(r.id, r); else if(r) map.set(uid(), r); });
+      records = Array.from(map.values());
+      persist(); render(); alert('已导入 '+arr.length+' 条（同 id 的已更新，其余保留）。');
+    }catch(err){ alert('这个文件解析不了，确认是之前「导出备份」得到的 .json 吗？'); }
+    ev.target.value='';
+  };
+  rd.readAsText(f, 'utf-8');
+}
+
+/* ---------- sample ---------- */
+function loadSample(){
+  const S = [
+    {group:'研究生能量夸夸群', date:'2026-11-17', time:'21:15', nick:'阿茶', type:'🌈夸夸我', templated:'是',
+     desc:'论文被退稿，想听两句好话，20 元拼手气红包',
+     amount:'20', parts:'4', claimed:'4', responders:'6', textResp:'23', voiceResp:'2',
+     interact:'热烈讨论', again:'否', note:'语音接龙很自然，可以做成固定栏目'},
+    {group:'研究生能量夸夸群', date:'2026-11-19', time:'23:05', nick:'饼干', type:'💗哄哄我', templated:'是',
+     desc:'跟室友闹别扭，情绪有点丧，10 元 3 份红包',
+     amount:'10', parts:'3', claimed:'3', responders:'3', textResp:'11', voiceResp:'1',
+     interact:'多人响应', again:'是', note:'当天夜里被哄回来了，老群友更靠得住'},
+    {group:'价值观讨论群', date:'2026-11-23', time:'19:40', nick:'小满', type:'🔥鼓励我', templated:'部分',
+     desc:'周五要面试，求打气，顺带把简历发群里求反馈',
+     amount:'15', parts:'5', claimed:'3', responders:'4', textResp:'9', voiceResp:'0',
+     interact:'多人响应', again:'是', note:'2 人领了红包没报名，下次红包和报名表绑定'},
+    {group:'价值观讨论群', date:'2026-11-24', time:'20:30', nick:'老周', type:'⚡骂醒我', templated:'否',
+     desc:'明知道该写论文却天天刷手机，求骂醒，5 元 2 份',
+     amount:'5', parts:'2', claimed:'1', responders:'1', textResp:'6', voiceResp:'0',
+     interact:'零星响应', again:'否', note:'骂醒了 3 天，第 4 天复吸'},
+    {group:'研究生能量夸夸群', date:'2026-11-25', time:'10:20', nick:'阿茶', type:'💡帮想想', templated:'是',
+     desc:'求职方向纠结：考公 / 产品 / 咨询，想让大家帮我捋捋',
+     amount:'8', parts:'4', claimed:'2', responders:'2', textResp:'14', voiceResp:'0',
+     interact:'延伸新需求', again:'否', note:'延伸出一次线上答疑，值得单开一场'}
+  ];
+  S.forEach(s=>{
+    const rec = Object.assign({id:uid(), createdAt:Date.now(), unclaimed:''}, s);
+    rec.unclaimed = (rec.parts && rec.claimed) ? Math.max(0, Number(rec.parts)-Number(rec.claimed)) : '';
+    records.push(rec);
+  });
+  persist(); render();
+}
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
