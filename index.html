@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>价值观提问生成器</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;color:#111;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.6;font-size:16px}
+  .page{max-width:560px;margin:0 auto;padding:24px 18px 40px}
+  .tabs{display:flex;gap:6px;border-bottom:1px solid #e5e5e5;margin-bottom:22px;padding-bottom:0}
+  .tab{flex:1;padding:10px 4px 11px;text-align:center;font-size:14px;color:#888;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit}
+  .tab[data-on="1"]{color:#111;border-bottom-color:#111;font-weight:600}
+  .field{margin-bottom:18px}
+  .lab{font-size:14px;font-weight:600;margin-bottom:5px}
+  .lab span{font-weight:400;color:#999;font-size:12.5px;margin-left:6px}
+  input,textarea,select{width:100%;font-family:inherit;font-size:15px;color:#111;border:1px solid #ddd;border-radius:8px;padding:9px 11px;outline:none;background:#fff;line-height:1.55}
+  textarea{resize:vertical;min-height:72px}
+  input:focus,textarea:focus,select:focus{border-color:#111}
+  ::placeholder{color:#bbb}
+  .seg{display:flex;gap:6px;flex-wrap:wrap}
+  .seg button{font-family:inherit;font-size:14px;padding:7px 15px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#555;cursor:pointer}
+  .seg button[data-on="1"]{border-color:#111;color:#111;font-weight:600}
+  .row{display:flex;gap:6px;margin-bottom:6px;align-items:center}
+  .row .tag{flex:none;font-size:13px;color:#999;width:26px}
+  .row .del{flex:none;width:28px;height:28px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#999;cursor:pointer;font-size:15px}
+  .add{font-family:inherit;font-size:13.5px;color:#111;background:none;border:1px dashed #ccc;border-radius:8px;padding:6px 12px;cursor:pointer;margin-top:2px}
+  .note{font-size:12.5px;color:#999;margin-top:6px}
+  .divider{height:1px;background:#eee;margin:26px 0 20px}
+  textarea.out{background:#fafafa;border:1px solid #eee;font-size:14.5px;line-height:1.8;min-height:280px}
+  .act{display:flex;gap:10px;margin-top:12px}
+  .primary{flex:1;padding:13px;border:none;border-radius:10px;background:#111;color:#fff;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer}
+  .ghost{padding:13px 18px;border:1px solid #ddd;border-radius:10px;background:#fff;color:#555;font-size:14px;font-family:inherit;cursor:pointer}
+  .status{font-size:12.5px;color:#999;margin-top:10px;min-height:18px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="tabs" id="tabs">
+    <button class="tab" data-mode="vsodr" data-on="1">观察 VSODR</button>
+    <button class="tab" data-mode="vpod">实践 VPOAD</button>
+    <button class="tab" data-mode="vreq">冲突 VREQ</button>
+  </div>
+
+  <!-- 观察 -->
+  <div id="v-vsodr">
+    <div class="field"><div class="lab">V 价值观<span>观察哪种价值观</span></div><input data-bind="vsodr.v" placeholder="如：诚信观"></div>
+    <div class="field"><div class="lab">S 主体<span>价值观落在谁身上</span></div>
+      <div class="seg" data-seg="vsodr.s">
+        <button data-val="个体" data-on="1">个体</button><button data-val="群体">群体</button><button data-val="社会">社会</button><button data-val="组织">组织</button><button data-val="文化">文化</button><button data-val="全球">全球</button>
+      </div>
+    </div>
+    <div class="field"><div class="lab">O 客体<span>被讨论的对象</span></div><input data-bind="vsodr.o" placeholder="如：找人代写作业"></div>
+    <div class="field"><div class="lab">D 描述<span>只写事实，不带评价</span></div><textarea data-bind="vsodr.d" placeholder="谁、在什么情况下、做了什么、结果怎样"></textarea></div>
+    <div class="field"><div class="lab">R 角色<span>个体逐个列，群体可只写群体名</span></div><textarea data-bind="vsodr.r" rows="3" placeholder="R1 &nbsp;/&nbsp; R2 &nbsp;/&nbsp; R3"></textarea></div>
+  </div>
+
+  <!-- 实践 -->
+  <div id="v-vpod" class="hidden">
+    <div class="field"><div class="lab">V 价值观<span>谈哪种价值观</span></div><input data-bind="vpod.v" placeholder="如：合作观"></div>
+    <div class="field"><div class="lab">P 视角<span>从谁的角度说</span></div>
+      <div class="seg" data-seg="vpod.p"><button data-val="我" data-on="1">我</button><button data-val="大家">大家</button><button data-val="第三方">第三方</button></div>
+    </div>
+    <div class="field"><div class="lab">O 客体<span>价值观落在什么上</span></div><input data-bind="vpod.o" placeholder="如：群里互相分享资料"></div>
+    <div class="field"><div class="lab">A 角度<span>你的态度</span></div>
+      <div class="seg" data-seg="vpod.a"><button data-val="相信" data-on="1">相信</button><button data-val="困惑">困惑</button><button data-val="质疑">质疑</button></div>
+    </div>
+    <div class="field"><div class="lab">D 描述<span>具体场景或现象</span></div><textarea data-bind="vpod.d" placeholder="谁在什么情境下，表现了怎样的态度或做法"></textarea></div>
+    <div class="field"><div class="lab">作答要求<span>二选一</span></div>
+      <div class="seg" data-seg="vpod.need"><button data-val="choose" data-on="1">① 选择 认同/保留/局限</button><button data-val="think">② 给思路 立场+逻辑</button></div>
+    </div>
+  </div>
+
+  <!-- 冲突 -->
+  <div id="v-vreq" class="hidden">
+    <div class="field"><div class="lab">V 价值观冲突<span>两种对立的价值观</span></div><input data-bind="vreq.v" placeholder="如：优先排序观 vs 公正观"></div>
+    <div class="field"><div class="lab">R 角色<span>冲突的双方或多方</span></div>
+      <div id="roles"></div><button class="add" data-add="roles">＋ 角色</button>
+    </div>
+    <div class="field"><div class="lab">E 事件<span>引发冲突的关键事实</span></div>
+      <div id="events"></div><button class="add" data-add="events">＋ 事件</button>
+    </div>
+    <div class="field"><div class="lab">Q 问题<span>Q1、Q2 必答，Q3 可选</span></div>
+      <div class="seg" data-seg="vreq.q3"><button data-val="off" data-on="1">只答 Q1 Q2</button><button data-val="on">加上 Q3 给思路</button></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="lab">生成结果</div>
+  <textarea class="out" id="out" readonly></textarea>
+  <div class="act">
+    <button class="primary" id="copy">复制</button>
+    <button class="ghost" id="clear">清空</button>
+  </div>
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+var st = {
+  mode:'vsodr',
+  vsodr:{v:'',s:'个体',o:'',d:'',r:''},
+  vpod:{v:'',p:'我',o:'',a:'相信',d:'',need:'choose'},
+  vreq:{v:'',roles:[''],events:[''],q3:false}
+};
+function g(p){var a=p.split('.');return st[a[0]][a[1]];}
+function s(p,v){var a=p.split('.');st[a[0]][a[1]]=v;}
+function pad(x){return x&&x.trim()?x.trim():'（还没填）';}
+
+function renderList(kind){
+  var box=document.getElementById(kind==='roles'?'roles':'events');
+  var pre=kind==='roles'?'R':'E';
+  var ph=kind==='roles'?'如：妈妈':'如：只有一个人能先安顿下来';
+  box.innerHTML=st.vreq[kind].map(function(it,i){
+    return '<div class="row"><span class="tag">'+pre+(i+1)+'</span>'
+      +'<input type="text" data-kind="'+kind+'" data-idx="'+i+'" value="'+(it||'').replace(/"/g,'&quot;')+'" placeholder="'+ph+'">'
+      +(st.vreq[kind].length>1?'<button class="del" data-del="'+kind+'" data-idx="'+i+'">×</button>':'')
+      +'</div>';
+  }).join('');
+}
+
+function text(){
+  var L=[];
+  if(st.mode==='vsodr'){
+    var a=st.vsodr;
+    L.push('📮 价值观观察 · V-S-O-D-R','');
+    L.push('【V 价值观】'+pad(a.v));
+    L.push('【S 主体】'+a.s);
+    L.push('【O 客体】'+pad(a.o));
+    L.push('【D 描述】');L.push(pad(a.d));
+    L.push('【R 角色】');L.push(pad(a.r));
+    L.push('','————— 作答格式 —————');
+    L.push('对每个角色，写出「价值观：……」和「说明：……」。');
+    L.push('角色：R1');L.push('  价值观：……');L.push('  说明：……');
+    L.push('（R2、R3 依次照此作答）');
+  } else if(st.mode==='vpod'){
+    var b=st.vpod;
+    L.push('📮 价值观实践 · V-P-O-A-D','');
+    L.push('【V 价值观】'+pad(b.v));
+    L.push('【P 视角】'+b.p);
+    L.push('【O 客体】'+pad(b.o));
+    L.push('【A 角度】'+b.a);
+    L.push('【D 描述】');L.push(pad(b.d));
+    L.push('','————— 作答要求 —————');
+    L.push(b.need==='choose'?'请选择：认同 / 保留 / 局限（选一个，用一两句话说明理由）。':'给思路：先亮立场，再讲逻辑（轻重缓急、利弊权衡等）。');
+  } else {
+    var c=st.vreq;
+    L.push('📮 价值观冲突 · V-R-E-Q','');
+    L.push('【V 价值观冲突】'+pad(c.v));
+    L.push('','【R 角色】');
+    c.roles.forEach(function(r,i){L.push('R'+(i+1)+' '+(r.trim()||'（还没填）'));});
+    L.push('','【E 事件】');
+    c.events.forEach(function(e,i){L.push('E'+(i+1)+' '+(e.trim()||'（还没填）'));});
+    L.push('','【Q 问题】');
+    L.push('Q1（必答）分析价值观：各角色分别持有什么价值观？');
+    L.push('Q2（必答）分析需求：事实层面各角色的需求分别是什么？');
+    if(c.q3) L.push('Q3（可选）给思路：你想给哪个角色提供解决方案，怎么做？');
+  }
+  return L.join('\n');
+}
+
+function render(){
+  var t=text();
+  document.getElementById('out').value=t;
+  var n=(t.match(/（还没填）/g)||[]).length;
+  var sEl=document.getElementById('status');
+  sEl.textContent=n?('还有 '+n+' 处没填'):'看起来齐了，可以复制';
+  sEl.style.color=n?'#c26a5b':'#999';
+  try{localStorage.setItem('vq-lite',JSON.stringify(st));}catch(e){}
+}
+
+/* 绑定 */
+document.addEventListener('input',function(e){
+  var el=e.target;
+  if(el.hasAttribute('data-bind')){s(el.getAttribute('data-bind'),el.value);render();}
+  else if(el.hasAttribute('data-kind')){st.vreq[el.getAttribute('data-kind')][+el.getAttribute('data-idx')]=el.value;render();}
+});
+
+document.addEventListener('click',function(e){
+  var t=e.target;
+  var tab=t.closest('.tab');
+  if(tab){switchMode(tab.getAttribute('data-mode'));return;}
+  var segBtn=t.closest('.seg button');
+  if(segBtn){
+    var seg=segBtn.parentElement,key=seg.getAttribute('data-seg');
+    seg.querySelectorAll('button').forEach(function(b){b.setAttribute('data-on',b===segBtn?'1':'0');});
+    if(key==='vreq.q3') st.vreq.q3=(segBtn.getAttribute('data-val')==='on');
+    else s(key,segBtn.getAttribute('data-val'));
+    render();return;
+  }
+  var add=t.closest('[data-add]');
+  if(add){var k=add.getAttribute('data-add');st.vreq[k].push('');renderList(k);return;}
+  var del=t.closest('[data-del]');
+  if(del){var k2=del.getAttribute('data-del');st.vreq[k2].splice(+del.getAttribute('data-idx'),1);if(!st.vreq[k2].length)st.vreq[k2].push('');renderList(k2);render();}
+});
+
+function switchMode(m){
+  st.mode=m;
+  document.querySelectorAll('.tab').forEach(function(t){t.setAttribute('data-on',t.getAttribute('data-mode')===m?'1':'0');});
+  ['vsodr','vpod','vreq'].forEach(function(k){document.getElementById('v-'+k).classList.toggle('hidden',k!==m);});
+  render();
+}
+
+function sync(){
+  document.querySelectorAll('[data-bind]').forEach(function(el){el.value=g(el.getAttribute('data-bind'));});
+  document.querySelectorAll('[data-seg]').forEach(function(seg){
+    var key=seg.getAttribute('data-seg');
+    var val=key==='vreq.q3'?(st.vreq.q3?'on':'off'):g(key);
+    seg.querySelectorAll('button').forEach(function(b){b.setAttribute('data-on',b.getAttribute('data-val')===val?'1':'0');});
+  });
+}
+
+/* 复制 */
+function copy(txt,cb){
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(cb,function(){fb(txt,cb);});}
+  else fb(txt,cb);
+}
+function fb(txt,cb){
+  var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);cb();
+}
+
+document.getElementById('copy').addEventListener('click',function(){
+  var txt=text();
+  copy(txt,function(){
+    var n=(txt.match(/（还没填）/g)||[]).length;
+    var sEl=document.getElementById('status');
+    sEl.style.color='#111';
+    sEl.textContent=n?('已复制，但还有 '+n+' 处没填'):'已复制。';
+  });
+});
+
+document.getElementById('clear').addEventListener('click',function(){
+  st.vsodr={v:'',s:'个体',o:'',d:'',r:''};
+  st.vpod={v:'',p:'我',o:'',a:'相信',d:'',need:'choose'};
+  st.vreq={v:'',roles:[''],events:[''],q3:false};
+  sync();renderList('roles');renderList('events');render();
+});
+
+/* 启动 */
+try{
+  var saved=localStorage.getItem('vq-lite');
+  if(saved){var o=JSON.parse(saved);if(o&&o.mode){st=o;}}
+}catch(e){}
+switchMode(st.mode);
+sync();renderList('roles');renderList('events');render();
+</script>
+</body>
+</html>
